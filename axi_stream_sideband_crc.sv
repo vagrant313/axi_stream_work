@@ -27,24 +27,49 @@ module axi_stream_sideband_crc #(
     parameter CRC_WIDTH  = 32 )
 (
 
-        input                         clk, 
-        input                         srst, 
+        input                            clk, 
+        input                            srst, 
         
         // AXI-ST signals from source 
-        input                         i_s_tlast, 
-        input 	   [DATA_WIDTH-1:0]   i_s_tdata, 
-        input      [DATA_WIDTH/8-1:0] i_s_tkeep, 
-        input                         i_s_tvalid, 
-        output                        o_s_tready, 
+        input   wire                      i_s_tlast, 
+        input 	wire   [DATA_WIDTH-1:0]   i_s_tdata, 
+        input   wire   [DATA_WIDTH/8-1:0] i_s_tkeep, 
+        input   wire                      i_s_tvalid, 
+        output  reg                       o_s_tready, 
 
-        input      [CRC_WIDTH:0]      crc, 
+        input   wire   [CRC_WIDTH:0]      crc, 
         
         // AXI-ST signals to sink 
-        input                         o_m_tlast, 
-        input      [DATA_WIDTH:0]     o_m_tdata, 
-        input      [DATA_WIDTH/8-1:0] o_m_tkeep, 
-        input                         o_m_tvalid, 
-        input                         i_m_tready 
+        output   reg                      o_m_tlast, 
+        output   reg   [DATA_WIDTH:0]     o_m_tdata, 
+        output   reg   [DATA_WIDTH/8-1:0] o_m_tkeep, 
+        output   reg                      o_m_tvalid, 
+        input   wire                     i_m_tready 
     
     );
+
+    reg [15:0]bytes_in_word;
+
+    integer i, byte_count;
+
+
+    always@(*) begin
+        
+        if (i_s_tvalid) begin
+        
+            byte_count = 0;
+
+            for (i=0; i <= KEEP_BYTES; i++) begin
+                if(i_s_tkeep[i])
+                    byte_count = byte_count + 1;
+                else
+                    byte_count = byte_count; 
+            end
+         end   
+         else begin
+            bytes_in_word = byte_count; 
+         end
+            
+    end
+
 endmodule
