@@ -20,7 +20,29 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module axi_stream_sideband_crc(
+module axi_stream_sideband_crc #(
 
+    parameter DATA_WIDTH = 512,
+    parameter KEEP_BYTES = DATA_WIDTH/8 )
+(
+
+        Input              clk, 
+        Input              srst, 
+        
+        // AXI-ST signals from source 
+        Input              i_tlast, 
+        Input 	   [511:0] i_tdata, 
+        Input  [512/8-1:0] i_tkeep, 
+        Input              i_tvalid, 
+        Input              o_tready, 
+        Input  [     31:0] crc, 
+        
+        // AXI-ST signals to sink 
+        Input             o_tlast, 
+        Input     [511:0] o_tdata, 
+        Input [512/8-1:0] o_tkeep, 
+        Input             o_tvalid, 
+        Input             i_tready 
+    
     );
 endmodule
