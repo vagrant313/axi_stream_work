@@ -76,17 +76,18 @@ module tb_axi_stream_sideband_crc(
         i_s_tdata  = {DATA_WIDTH{1'b1}};
         i_s_tkeep  = 0;
         i_s_tvalid = 0;
+        //o_s_tready = 1;
         
         #00;  srst = 0;
         #10;  srst = 1;
         #10;  srst = 0;
         
-        #10; i_s_tvalid = 1;
-        #40; i_s_tvalid = 0;
+        #10; i_s_tvalid = 1; i_s_tkeep  = {KEEP_BYTES{1'b1}}; 
+        #40; i_s_tvalid = 0; i_s_tkeep  = 0;
     end
     
     initial begin
-        # 60; i_s_tlast  = 1;
+        # 60; i_s_tlast  = 1; i_s_tkeep  = {(KEEP_BYTES-62){1'b1}};
         # 10; i_s_tlast  = 0;
 
     end

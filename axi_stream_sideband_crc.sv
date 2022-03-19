@@ -44,32 +44,40 @@ module axi_stream_sideband_crc #(
         output   reg   [DATA_WIDTH:0]     o_m_tdata, 
         output   reg   [DATA_WIDTH/8-1:0] o_m_tkeep, 
         output   reg                      o_m_tvalid, 
-        input   wire                     i_m_tready 
+        input    wire                     i_m_tready 
     
     );
 
-    reg [15:0]bytes_in_word;
+    reg [15:0]bytes_in_word_now;
+    reg [15:0]bytes_in_word_nxt;
 
     integer i, byte_count;
 
 
-    always@(*) begin
-        
-        if (i_s_tvalid) begin
-        
-            byte_count = 0;
+    always@* begin
 
-            for (i=0; i <= KEEP_BYTES; i++) begin
-                if(i_s_tkeep[i])
-                    byte_count = byte_count + 1;
-                else
-                    byte_count = byte_count; 
-            end
-         end   
-         else begin
-            bytes_in_word = byte_count; 
-         end
-            
+        bytes_in_word_nxt =  bytes_in_word_now;
+               
+        if (i_s_tvalid) begin  //&& o_s_tready
+ 
+                byte_count = 0;
+                for (i=0; i <= KEEP_BYTES; i++) begin
+                    if(i_s_tkeep[i])
+                        byte_count = byte_count + 1;
+                end
+                
+                bytes_in_word_nxt = bytes_in_word_nxt + byte_count;
+        end
+    
+    end
+    
+    
+    always@(posedge clk or posedge srst) begin
+        if(srst)
+            bytes_in_word_now <= 0;
+        else
+            bytes_in_word_now <= bytes_in_word_nxt;
+    
     end
 
 endmodule
