@@ -36,9 +36,6 @@ module axi_stream_sideband_crc  #(
   );
 
 
-
-
-
   logic                      o_m_tlast_reg;
   logic   [DATA_WIDTH-1:0]   o_m_tdata_reg;
   logic   [DATA_WIDTH/8-1:0] o_m_tkeep_reg;
@@ -49,16 +46,14 @@ module axi_stream_sideband_crc  #(
   logic   [KEEP_BYTES-1:0]   keep_long_reg   = '0;
   int     crc_overflow = -1;
 
-
-
-
+  //FSM States   
   enum { IDLE, // wait for tvalid
          READ, // passthrough input words
          EXTD // extend crc to another word with backpressue
        } state,next;
 
 
-
+  //rotate states synchronously
   always @(posedge clk)
   begin
     if(srst)  state <= IDLE;
@@ -66,7 +61,7 @@ module axi_stream_sideband_crc  #(
   end
 
 
-
+  // state switching and outputs defined in a single comb block  
   always @(*)
   begin
 
@@ -74,10 +69,7 @@ module axi_stream_sideband_crc  #(
 
     case(state)
 
-      IDLE:
-      begin
-
-
+      IDLE: begin
         o_m_tlast_reg  = '0;
         o_m_tdata_reg  = '0;
         o_m_tkeep_reg  = '0;
@@ -86,7 +78,6 @@ module axi_stream_sideband_crc  #(
 
         if(i_s_tvalid && o_s_tready)
         begin
-
           o_m_tlast_reg  = '0;
           o_m_tdata_reg  = i_s_tdata;
           o_m_tkeep_reg  = i_s_tkeep;
@@ -96,18 +87,12 @@ module axi_stream_sideband_crc  #(
           next = READ;
         end
         else
-        begin
           next = IDLE;
-        end
       end
 
-      READ:
-      begin
+      READ: begin
 
-
-        if(!(i_s_tlast))
-        begin
-
+        if(!(i_s_tlast)) begin
           o_m_tlast_reg  = '0;
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '1;
@@ -118,9 +103,7 @@ module axi_stream_sideband_crc  #(
           next = READ;
         end
 
-        else if(i_s_tlast && crc_overflow >= 4 )
-        begin
-
+        else if(i_s_tlast && crc_overflow >= 4 ) begin
           o_m_tlast_reg  = '1;
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '1;
@@ -130,9 +113,7 @@ module axi_stream_sideband_crc  #(
 
           next = IDLE;
         end
-        else
-        begin
-
+        else begin
           o_m_tlast_reg  = '0;
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '1;
@@ -144,11 +125,9 @@ module axi_stream_sideband_crc  #(
         end
       end
 
-      EXTD:
-      begin
+      EXTD: begin
 
-        if(i_s_tlast && crc_overflow < 4 )
-        begin
+        if(i_s_tlast && crc_overflow < 4 ) begin
           o_m_tlast_reg  = '1;
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '0;
@@ -156,13 +135,10 @@ module axi_stream_sideband_crc  #(
           o_m_tdata_reg = crc     >>  (crc_overflow*8);
           o_m_tkeep_reg = 4'b1111 >>  (crc_overflow);
 
-
           next = IDLE;
         end
         else
-        begin
           next = IDLE;
-        end
       end
 
       default:
@@ -172,22 +148,18 @@ module axi_stream_sideband_crc  #(
 
   end
 
-
   // synchronous Output connections to avoid glitsches
 
   always @(posedge clk )
   begin
-    if(srst)
-    begin
+    if(srst) begin
       o_m_tlast  <= '0;
       o_m_tvalid <= '0;
       o_m_tdata  <= '0;
       o_m_tkeep  <= '0;
       o_s_tready <= '0;
     end
-    else if(i_m_tready)
-    begin
-
+    else if(i_m_tready) begin
       o_m_tlast   <= o_m_tlast_reg;
       o_m_tvalid  <= o_m_tvalid_reg;
       o_m_tdata   <= o_m_tdata_reg;
@@ -195,8 +167,7 @@ module axi_stream_sideband_crc  #(
       o_s_tready  <= o_s_tready_reg;
 
     end
-    else
-    begin
+    else begin
       o_m_tlast  <= '0;
       o_m_tvalid <= '0;
       o_m_tdata  <= '0;
@@ -204,8 +175,6 @@ module axi_stream_sideband_crc  #(
       o_s_tready <= '0;
     end
   end
-
-
 
   ///////////////////////////////////////////////
   //                                           //
@@ -215,32 +184,26 @@ module axi_stream_sideband_crc  #(
 
   int keep_valid_index;
 
-  always@*
-  begin
+  always@* begin
 
     keep_valid_index = 0;
     crc_long_reg    = crc;
     keep_long_reg   = {{(KEEP_BYTES-4){1'b0}}, 4'b1111};
 
-    if (i_s_tlast)
-    begin
+    if (i_s_tlast) begin
 
       for (keep_valid_index=0; keep_valid_index < KEEP_BYTES; keep_valid_index++)
       begin
-        if(i_s_tkeep[keep_valid_index])
-        begin
+        if(i_s_tkeep[keep_valid_index]) begin
 
           crc_long_reg  = crc_long_reg << 8;
 
           crc_overflow  = (KEEP_BYTES-keep_valid_index-1);
 
           keep_long_reg =  keep_long_reg << 1;
-
-
         end
       end
     end
-
   end
 
 
