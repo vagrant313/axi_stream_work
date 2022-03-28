@@ -167,14 +167,6 @@ module axi_stream_sideband_crc  #(
       o_s_tready  <= o_s_tready_reg;
 
     end
-    else begin
-      o_m_tlast  <= '0;
-      o_m_tvalid <= '0;
-      o_m_tdata  <= '0;
-      o_m_tkeep  <= '0;
-      o_s_tready <= '0;
-    end
-  end
 
   ///////////////////////////////////////////////
   //                                           //
