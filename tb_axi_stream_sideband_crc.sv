@@ -55,7 +55,7 @@ module tb_axi_stream_sideband_crc (
     parameter PERIOD = 20;
     
     initial begin
-        #(PERIOD/2)  clk = 0;
+        #(PERIOD/2)  clk = 1;
         forever begin
          #(PERIOD/2) clk = ~clk;
         end
@@ -69,7 +69,7 @@ module tb_axi_stream_sideband_crc (
         i_s_tkeep  = 0;
         i_s_tvalid = 0;
         i_m_tready = 1;
-        #2
+        
                 
         // reset 
         #00;  srst = 0;
