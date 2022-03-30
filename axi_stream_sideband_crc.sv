@@ -44,6 +44,7 @@ module axi_stream_sideband_crc  #(
 
   logic   [DATA_WIDTH-1:0]   crc_long_reg    = '0;
   logic   [KEEP_BYTES-1:0]   keep_long_reg   = '0;
+  logic   [CRC_WIDTH-1:0]    crc_reg;
   int     crc_overflow = -1;
 
   //FSM States   
@@ -132,7 +133,7 @@ module axi_stream_sideband_crc  #(
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '0;
 
-          o_m_tdata_reg = crc     >>  (crc_overflow*8);
+          o_m_tdata_reg = crc_reg >>  (crc_overflow*8);
           o_m_tkeep_reg = 4'b1111 >>  (crc_overflow);
 
           next = IDLE;
@@ -158,6 +159,7 @@ module axi_stream_sideband_crc  #(
       o_m_tdata  <= '0;
       o_m_tkeep  <= '0;
       o_s_tready <= '0;
+      crc_reg    <= '0;
     end
     else if(i_m_tready) begin
       o_m_tlast   <= o_m_tlast_reg;
@@ -165,6 +167,7 @@ module axi_stream_sideband_crc  #(
       o_m_tdata   <= o_m_tdata_reg;
       o_m_tkeep   <= o_m_tkeep_reg;
       o_s_tready  <= o_s_tready_reg;
+      crc_reg     <= crc;
 
     end
 
