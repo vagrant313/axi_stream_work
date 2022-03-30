@@ -128,7 +128,7 @@ module axi_stream_sideband_crc  #(
 
       EXTD: begin
 
-        if(i_s_tlast && crc_overflow < 4 ) begin
+        if(crc_overflow < 4 ) begin
           o_m_tlast_reg  = '1;
           o_m_tvalid_reg = '1;
           o_s_tready_reg = '0;
